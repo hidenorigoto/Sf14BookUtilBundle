@@ -1,6 +1,6 @@
 <?php
 
-namespace Bundle\Sf14bookBundle\Command;
+namespace Bundle\Sf14bookUtilBundle\Command;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
@@ -24,7 +24,9 @@ class UpdateListCommand extends Command
 //                new InputArgument('e', InputArgument::REQUIRED, 'The namespace of the bundle to create'),
 //            ))
             ->setName('sf14book:update:list')
-        ;
+            ;
+
+        mb_internal_encoding('UTF-8');
     }
 
     /**
@@ -34,10 +36,52 @@ class UpdateListCommand extends Command
     {
         $finder = new Finder();
         $finder->files()->name('chap*.txt')->in(getcwd());
-        foreach ($finder as $file)
+        foreach ($finder as $filePath)
         {
-            echo $file . PHP_EOL;
+            $this->procOneFile($input, $output, $filePath);
         }
+    }
+
+    protected function procOneFile(InputInterface $input, OutputInterface $output, $filePath)
+    {
+        $output->writeln(sprintf('Processing... %s', basename($filePath)));
+        preg_match('/chap0?(.+)\./', basename($filePath), $match);
+        $num1 = $match[1];
+        $num2 = 0;
+        $num3 = 0;
+        $listnum = 0;
+        $tablenum = 0;
+        $data = file($filePath);
+        while(list($key, $value) = each($data))
+        {
+            if (preg_match('/■■■■(.+\d)(.*)/', $value, $match))
+            {
+                ++$num2;
+                $num3 = 0;
+                $value = sprintf("■■■■%s-%s%s\n", $num1, $num2, $match[2]);
+                echo $value;
+            }
+            else if (preg_match('/■■■(.+\d)(.*)/', $value, $match))
+            {
+                ++$num3;
+                $value = sprintf("■■■%s-%s-%s%s\n", $num1, $num2, $num3, $match[2]);
+                echo $value;
+            }
+            else if (preg_match('/(☆|★)表([^¥s]+?[\dN]+)(.*)(☆|★)/', $value, $match))
+            {
+                ++$tablenum;
+                $value = sprintf("★表%s-%s%s★\n", $num1, $tablenum, $match[3]);
+                echo $value;
+            }
+            else if (preg_match('/(☆|★)［リスト([^］]+?[\dN]+)(.*)(☆|★)/', $value, $match))
+            {
+                ++$listnum;
+                $value = sprintf("★［リスト%s-%s］%s★\n", $num1, $listnum, mb_substr($match[3], 1));
+                echo $value;
+            }
+            $data[$key] = $value;
+        }
+        file_put_contents($filePath, implode('', $data));
     }
 }
 
