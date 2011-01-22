@@ -54,20 +54,20 @@ class UpdateListCommand extends Command
         $data = file($filePath);
         while(list($key, $value) = each($data))
         {
-            if (preg_match('/■■■■(.+\d)(.*)/', $value, $match))
+            if (preg_match('/■■■■([^\s]+[\dN])(.*)/', $value, $match))
             {
                 ++$num2;
                 $num3 = 0;
                 $value = sprintf("■■■■%s-%s%s\n", $num1, $num2, $match[2]);
                 echo $value;
             }
-            else if (preg_match('/■■■(.+\d)(.*)/', $value, $match))
+            else if (preg_match('/■■■([^\s]+[\dN])(.*)/', $value, $match))
             {
                 ++$num3;
                 $value = sprintf("■■■%s-%s-%s%s\n", $num1, $num2, $num3, $match[2]);
                 echo $value;
             }
-            else if (preg_match('/(☆|★)表([^¥s]+?[\dN]+)(.*)(☆|★)/', $value, $match))
+            else if (preg_match('/(☆|★)表([^\s]+?[\dN]+)(.*)(☆|★)/', $value, $match))
             {
                 ++$tablenum;
                 $value = sprintf("★表%s-%s%s★\n", $num1, $tablenum, $match[3]);
